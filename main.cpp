@@ -15,14 +15,28 @@ struct Quote {
 	Price price;
 };
 
-using Quotes = std::vector<Quote>;
+struct Quotes {
+	std::string name;
+	std::vector<Quote> quotes;
+};
 
 using namespace std;
 using namespace date;
 
-Quotes parseQuotes(const std::string &file) {
-	Quotes quotes;
-	ifstream in(file);
+struct Strategy {
+	using Module = std::vector<Quotes>;
+	using Modules = std::vector<Module>;
+	Modules modules;
+};
+
+
+
+std::vector<Quote> parseQuotes(const std::string &file) {
+	std::vector<Quote> quotes;
+	const auto filePath = "/home/anton/temp/quotes/" + file + ".csv";
+	ifstream in(filePath);
+	if (!in)
+		throw std::runtime_error(filePath + " not found");
 	string header;
 	getline(in, header);
 	if (header != "Date,Open,High,Low,Close,Adj Close,Volume")
@@ -70,8 +84,18 @@ Quotes parseQuotes(const std::string &file) {
 }
 
 int main() try {
-	const auto bnd = parseQuotes("/home/anton/temp/quotes/BND.csv");
-	cout << bnd.size() << endl;
+	Strategy strategy {
+		Strategy::Modules{
+			Strategy::Module{
+				Quotes{"BND", parseQuotes("BND")},
+				Quotes{},
+			},
+			Strategy::Module{},
+		}
+	};
+
+
+
 	return 0;
 } catch (const std::exception &x) {
 	cout << x.what() << endl;
