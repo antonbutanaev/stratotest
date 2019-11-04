@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.6)
 project(stratotest)
+
 set(CMAKE_CXX_STANDARD 17)
+
 add_subdirectory(date)
+
 add_executable(stratotest main.cpp)
+
 target_link_libraries(stratotest date)
-target_compile_options(stratotest PRIVATE -Werror -Wall -Wextra -Wno-deprecated-declarations)
+
+target_compile_options(stratotest
+	PRIVATE
+	-Werror -Wall -Wextra
+	-Wno-deprecated-declarations
+)
+
 target_compile_features(stratotest PRIVATE cxx_std_17)
