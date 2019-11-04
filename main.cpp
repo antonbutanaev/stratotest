@@ -34,7 +34,10 @@ struct Strategy {
 std::vector<Quote> parseQuotes(const std::string &file) {
 	std::vector<Quote> quotes;
 	const auto filePath = "/home/anton/temp/quotes/" + file + ".csv";
-	ifstream in(filePath);
+	ifstream in;
+	in.exceptions(ios::failbit|ios::badbit);
+	in.unsetf(std::ios_base::skipws);
+	in.open(filePath);
 	if (!in)
 		throw std::runtime_error(filePath + " not found");
 	string header;
@@ -42,12 +45,10 @@ std::vector<Quote> parseQuotes(const std::string &file) {
 	if (header != "Date,Open,High,Low,Close,Adj Close,Volume")
 		throw std::runtime_error("Wrong quote file format");
 
-	for (;;) {
+	while (in.peek(), !in.eof()) {
 		int yi, mi, di;
 		char dash;
 		in >> yi >> dash >> mi >> dash >> di;
-		if (!in)
-			break;
 
 		auto ymd = year{yi}/mi/di;
 
@@ -56,7 +57,7 @@ std::vector<Quote> parseQuotes(const std::string &file) {
 		Quote quote;
 		quote.time = sys_days{ymd};
 
-		char comma;
+		char comma, nl;
 		Price open, high, low, close, adjClose;
 		long volume;
 		in >> comma
@@ -65,7 +66,7 @@ std::vector<Quote> parseQuotes(const std::string &file) {
 			>> low >> comma
 			>> close >> comma
 			>> adjClose >> comma
-			>> volume;
+			>> volume >> nl;
 
 		LOG0(
 			open << ':'
@@ -80,6 +81,7 @@ std::vector<Quote> parseQuotes(const std::string &file) {
 		quotes.push_back(quote);
 	}
 
+	LOG(file << ": quotes num " << quotes.size() << " first date " << quotes.front().time);
 	return quotes;
 }
 
@@ -87,14 +89,22 @@ int main() try {
 	Strategy strategy {
 		Strategy::Modules{
 			Strategy::Module{
-				Quotes{"BND", parseQuotes("BND")},
-				Quotes{},
+				Quotes{"VTI", parseQuotes("VTI")},
+				Quotes{"VEA", parseQuotes("VEA")},
+				Quotes{"VWO", parseQuotes("VWO")},
 			},
-			Strategy::Module{},
+			Strategy::Module{
+				Quotes{"LQD", parseQuotes("VTI")},
+				Quotes{"TLT", parseQuotes("VEA")},
+				Quotes{"EMB", parseQuotes("EMB")},
+			},
+			Strategy::Module{
+				Quotes{"IAU", parseQuotes("IAU")},
+				Quotes{"DBC", parseQuotes("DBC")},
+				Quotes{"VNQ", parseQuotes("VNQ")},
+			},
 		}
 	};
-
-
 
 	return 0;
 } catch (const std::exception &x) {
