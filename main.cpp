@@ -42,7 +42,7 @@ using  Portfolio = std::map<Ticker, size_t>;
 
 std::vector<Quote> parseQuotes(const std::string &file) {
 	std::vector<Quote> quotes;
-	const auto filePath = "/home/anton/temp/quotes/" + file + ".csv";
+	const auto filePath = "/home/anton/yadisk/inv/quotes/" + file + ".csv";
 	ifstream in;
 	in.exceptions(ios::failbit|ios::badbit);
 	in.unsetf(std::ios_base::skipws);
