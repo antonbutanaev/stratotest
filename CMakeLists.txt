@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.6)
 project(stratotest)
 
-set(CMAKE_CXX_STANDARD 17)
-
 add_subdirectory(date)
 
-add_executable(stratotest main.cpp)
+add_executable(stratotest
+	main.cpp
+	Quotes.cpp
+)
 
 target_link_libraries(stratotest date)
 
