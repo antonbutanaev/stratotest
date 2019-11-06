@@ -5,6 +5,7 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
+#include <cmath>
 #include <date/date.h>
 
 #include "Log.h"
@@ -29,7 +30,7 @@ void buy(const Strategy &strategy, const Date &date, Price &cash, Portfolio &por
 	const auto cashOrig = cash;
 	for (const auto &module: strategy.modules) {
 		double maxChange = 0;
-		Price price;
+		Price price = NoPrice;
 		decltype(module.instruments.begin()) bestInstrumentIt;
 		for (auto instrumentIt = module.instruments.begin(); instrumentIt != module.instruments.end(); ++instrumentIt) {
 			const auto nowPrice = Quotes::get().getQuote(*instrumentIt, date);
@@ -49,7 +50,7 @@ void buy(const Strategy &strategy, const Date &date, Price &cash, Portfolio &por
 			}
 		}
 
-		if (maxChange > 0) {
+		if (price != NoPrice) {
 			unsigned num = cashOrig * module.weight / price;
 			LOG(
 				"Best instrument in module " << (&module - &strategy.modules.front())
@@ -71,8 +72,37 @@ void sellAll(const Date &date, Price &cash, Portfolio &portfolio) {
 	portfolio.clear();
 }
 
-int main() try {
+void testStrategy(const Strategy &strategy, const Date &startDate) {
+	const auto endDate = year{2019}/10/1;
+	Price cash = 10000.;
+	auto cashOrig = cash;
+	Portfolio portfolio;
+	const auto printCash = [&](const auto &date){
+		LOG("=== " << date << " CASH " << cash);
+	};
+	const auto printPortfolio = [&](const auto &date){
+		for (const auto &position: portfolio) {
+			LOG("ON " << date << " TICKER " << position.first << " " << position.second);
+		}
+	};
+	buy(strategy, startDate, cash, portfolio);
+	for (auto date = startDate + months{1}; date < endDate; date += months{1}) {
+		printPortfolio(date);
+		sellAll(date, cash, portfolio);
+		printCash(date);
+		buy(strategy, date, cash, portfolio);
+	}
+	sellAll(endDate, cash, portfolio);
+	printCash(endDate);
 
+	const auto rate = cash / cashOrig;
+	const auto numMonths = (endDate.year()/endDate.month() - startDate.year()/startDate.month()).count();
+	const auto annual = pow(rate, 12./numMonths);
+
+	LOG("RESULT from " << startDate << " years " << numMonths/12. <<  " CASH " << cash << " rate " << rate << " annual " << 100 * (annual-1));
+}
+
+int main() try {
 	const Strategy strategy {
 		{
 			{
@@ -112,27 +142,8 @@ int main() try {
 
 	cout << fixed << setprecision(2);
 
-	const auto startDate = year{2010}/4/1;
-	const auto endDate = year{2019}/10/1;
-	Price cash = 10000.;
-	Portfolio portfolio;
-	const auto printCash = [&](const auto &date){
-		LOG("ON " << date << " CASH " << cash);
-	};
-	const auto printPortfolio = [&](const auto &date){
-		for (const auto &position: portfolio) {
-			LOG("ON " << date << " TICKER " << position.first << " " << position.second);
-		}
-	};
-	buy(strategy, startDate, cash, portfolio);
-	for (auto date = startDate + months{1}; date < endDate; date += months{1}) {
-		printPortfolio(date);
-		sellAll(date, cash, portfolio);
-		printCash(date);
-		buy(strategy, date, cash, portfolio);
-	}
-	sellAll(endDate, cash, portfolio);
-	printCash(endDate);
+	for (auto date = year{2008}/7/1; date < year{2018}/10/1; date += months{1})
+		testStrategy(strategy, date);
 
 	return 0;
 } catch (const std::exception &x) {
