@@ -3,7 +3,10 @@ project(stratotest)
 
 add_subdirectory(date)
 
-add_executable(stratotest main.cpp)
+add_executable(stratotest
+	main.cpp
+	Quotes.cpp
+)
 
 target_link_libraries(stratotest date)
 
