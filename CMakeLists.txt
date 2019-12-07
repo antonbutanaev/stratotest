@@ -14,6 +14,7 @@ target_compile_options(stratotest
 	PRIVATE
 	-Werror -Wall -Wextra
 	-Wno-deprecated-declarations
+	-Wno-unused-parameter
 )
 
 target_compile_features(stratotest PRIVATE cxx_std_17)

@@ -12,13 +12,15 @@ using Date = date::year_month_day;
 class Quotes {
 public:
 	void parseQuotes(const Ticker &ticker);
-
 	Price getQuote(const Ticker &, const Date &);
+	Date getFisrtDate(const Ticker &);
+	Date getLastDate(const Ticker &);
 
 	static Quotes &get() {
 		static Quotes quotes;
 		return quotes;
 	}
+
 private:
 	Quotes();
 	std::map<Ticker, std::map<Date, Price>> m_quotes;

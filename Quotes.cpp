@@ -8,6 +8,20 @@ using namespace date;
 Quotes::Quotes() {
 }
 
+Date Quotes::getFisrtDate(const Ticker &ticker) {
+	const auto tickerIt = m_quotes.find(ticker);
+	if (tickerIt == m_quotes.end())
+		THROW("Quotes::getQuote tikcer " << ticker << " not found");
+	return tickerIt->second.begin()->first;
+}
+
+Date Quotes::getLastDate(const Ticker &ticker) {
+	const auto tickerIt = m_quotes.find(ticker);
+	if (tickerIt == m_quotes.end())
+		THROW("Quotes::getQuote tikcer " << ticker << " not found");
+	return std::prev(tickerIt->second.end())->first;
+}
+
 Price Quotes::getQuote(const Ticker &ticker, const Date &date) {
 	const auto tickerIt = m_quotes.find(ticker);
 	if (tickerIt == m_quotes.end())
@@ -21,7 +35,6 @@ Price Quotes::getQuote(const Ticker &ticker, const Date &date) {
 }
 
 void Quotes::parseQuotes(const std::string &ticker) {
-	LOG("Parsing quotes " << ticker);
 	const auto filePath = "/home/anton/yadisk/inv/quotes/" + ticker + ".csv";
 	ifstream in;
 	in.exceptions(ios::failbit|ios::badbit);
@@ -64,9 +77,10 @@ void Quotes::parseQuotes(const std::string &ticker) {
 		m_quotes[ticker][year{yi}/mi/di] = adjClose;
 	}
 
-	LOG("Quotes for " << ticker << " num " << m_quotes[ticker].size());
+	cout << "Quotes for " << ticker << " num " << m_quotes[ticker].size();
 	if (!m_quotes[ticker].empty())
-		LOG("Begin on " << m_quotes[ticker].begin()->first);
+		cout << " begin on " << m_quotes[ticker].begin()->first;
+	cout << endl;
 }
 
 
