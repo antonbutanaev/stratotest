@@ -85,25 +85,12 @@ void sellAll(const Date &date, Price &cash, Portfolio &portfolio) {
 	LOG("CASH on " << date << " " << cash << " draw down " << (100. * (cash / maxCash - 1.)) << "%");
 }
 
-void analyzeResult(Date startDate, Date endDate, Price origCash, Price result) {
-	const auto rate = result / origCash;
-	const auto numMonths = (endDate.year()/endDate.month() - startDate.year()/startDate.month()).count();
-	const auto annual = pow(rate, 12./numMonths);
-	LOG(
-		"RESULT " << startDate << " " << endDate <<
-		" years " << numMonths/12. <<
-		" result " << result << " rate " << rate << " annual " << 100 * (annual-1) << "%"
-	);
-}
-
 void testStrategy(const Strategy &strategy, const Date &startDate) {
 	const auto endDate = year{2019}/10/1;
 	Price cash = 10000.;
 	auto cashOrig = cash;
 	Portfolio portfolio;
-	const auto printCash = [&](const auto &date){
-		LOG("=== " << date << " CASH " << cash);
-	};
+	CashAnalyzer cashAnalyzer;
 	const auto printPortfolio = [&](const auto &date){
 		for (const auto &position: portfolio) {
 			LOG("ON " << date << " TICKER " << position.first << " " << position.second);
@@ -113,13 +100,12 @@ void testStrategy(const Strategy &strategy, const Date &startDate) {
 	for (auto date = startDate + months{1}; date < endDate; date += months{1}) {
 		printPortfolio(date);
 		sellAll(date, cash, portfolio);
-		printCash(date);
+		cashAnalyzer.addBalance(cash);
 		buy(strategy, date, cash, portfolio);
 	}
 	sellAll(endDate, cash, portfolio);
-	printCash(endDate);
-
-	analyzeResult(startDate, endDate, cashOrig, cash);
+	cashAnalyzer.addBalance(cash);
+	cashAnalyzer.result(startDate, endDate, cash, cashOrig);
 }
 
 void strategySGCapital() {
@@ -169,7 +155,7 @@ void strategySGCapital() {
 
 using Tickers = vector<Ticker>;
 
-Tickers findAtHighs(const Tickers &tickers, const Date &onDate) {
+Tickers findAtHighs(const Tickers &tickers, const Date &onDate, size_t numBack = 12) {
 	struct S {
 		Ticker ticker;
 		double gain;
@@ -179,7 +165,11 @@ Tickers findAtHighs(const Tickers &tickers, const Date &onDate) {
 	for (const auto &ticker: tickers) {
 		const auto priceOnDate = Quotes::get().getQuote(ticker, onDate);
 		bool atHigh = true;
-		for (auto date = Quotes::get().getFisrtDate(ticker); date < onDate; date += months{1})
+		const auto firstDate = Quotes::get().getFisrtDate(ticker);
+		auto date = onDate - months{numBack};
+		if (date < firstDate)
+			date = firstDate;
+		for (; date < onDate; date += months{1})
 			if (Quotes::get().getQuote(ticker, date) > priceOnDate) {
 				atHigh = false;
 				break;
@@ -207,17 +197,24 @@ Tickers findAtHighs(const Tickers &tickers, const Date &onDate) {
 
 void strategyBuyAtHigh() {
 	Tickers stocks = {
+		//"VTI",
+		//"VEA",
+		//"VWO",
+
 		"SPY",
 		"GDX",
 		"IAU",
 		"QQQ",
-		"MOAT",
-		"MTUM",
-		"NOBL",
-		"QUAL",
-		"SOXX",
+		//"MOAT",
+		//"MTUM",
+		//"NOBL",
+		//"QUAL",
+		//"SOXX",
 		"SPLV",
+		//"IBB",
+		//"IWM",
 		"VYM",
+		"VIG",
 		"VNQ",
 		"XLB",
 		//"XLC",
@@ -300,7 +297,6 @@ void strategyBuyAtHigh() {
 
 	sellAll(end, cash, portfolio);
 	cashAnalyzer.addBalance(cash);
-
 	cashAnalyzer.result(start, end, cash, origCash);
 }
 
