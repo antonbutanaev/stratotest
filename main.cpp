@@ -77,6 +77,7 @@ void sellAll(const Date &date, Price &cash, Portfolio &portfolio) {
 		cash += position.second * price;
 	}
 	portfolio.clear();
+	LOG("CASH on " << date << " " << cash);
 }
 
 void analyzeResult(Date startDate, Date endDate, Price origCash, Price result) {
@@ -164,7 +165,12 @@ void strategySGCapital() {
 using Tickers = vector<Ticker>;
 
 Tickers findTickersAtHighs(const Tickers &tickers, const Date &onDate) {
-	Tickers res;
+	struct S {
+		Ticker ticker;
+		double gain;
+	};
+	vector<S> atHighs;
+
 	for (const auto &ticker: tickers) {
 		const auto priceOnDate = Quotes::get().getQuote(ticker, onDate);
 		bool atHigh = true;
@@ -173,9 +179,24 @@ Tickers findTickersAtHighs(const Tickers &tickers, const Date &onDate) {
 				atHigh = false;
 				break;
 			}
-		if (atHigh)
-			res.push_back(ticker);
+		if (atHigh) {
+			const auto gain =
+				Quotes::get().getQuote(ticker, onDate) /
+				Quotes::get().getQuote(ticker, onDate - months{1});
+			atHighs.push_back(S{ticker, gain});
+		}
 	}
+	std::sort(atHighs.begin(), atHighs.end(), [](auto a, auto b) {
+		return a.gain < b.gain;
+	});
+	Tickers res;
+	int n = 0;
+	for (const auto &it: atHighs) {
+		if (++n > 3)
+			break;
+		res.push_back(it.ticker);
+	}
+
 	return res;
 }
 
@@ -188,6 +209,7 @@ void strategyBuyAtHigh() {
 		"SOXX",
 		"SPLV",
 		"VYM",
+		"VNQ",
 		"XLB",
 		//"XLC",
 		"XLE",
