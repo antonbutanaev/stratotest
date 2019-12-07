@@ -206,6 +206,10 @@ Tickers findTickersAtHighs(const Tickers &tickers, const Date &onDate) {
 
 void strategyBuyAtHigh() {
 	Tickers stocks = {
+		"SPY",
+		"GDX",
+		"IAU",
+		"QQQ",
 		"MOAT",
 		"MTUM",
 		"NOBL",
