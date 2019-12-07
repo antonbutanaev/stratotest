@@ -77,7 +77,11 @@ void sellAll(const Date &date, Price &cash, Portfolio &portfolio) {
 		cash += position.second * price;
 	}
 	portfolio.clear();
-	LOG("CASH on " << date << " " << cash);
+	static Price maxCash = 0.;
+	if (maxCash < cash)
+		maxCash = cash;
+
+	LOG("CASH on " << date << " " << cash << " draw down " << (100. * (cash / maxCash - 1.)) << "%");
 }
 
 void analyzeResult(Date startDate, Date endDate, Price origCash, Price result) {
