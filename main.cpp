@@ -8,6 +8,7 @@
 #include <cmath>
 #include <date/date.h>
 
+#include "CashAnalyzer.h"
 #include "Log.h"
 #include "Quotes.h"
 
@@ -168,7 +169,7 @@ void strategySGCapital() {
 
 using Tickers = vector<Ticker>;
 
-Tickers findTickersAtHighs(const Tickers &tickers, const Date &onDate) {
+Tickers findAtHighs(const Tickers &tickers, const Date &onDate) {
 	struct S {
 		Ticker ticker;
 		double gain;
@@ -266,11 +267,13 @@ void strategyBuyAtHigh() {
 	Portfolio portfolio;
 	cout << fixed << setprecision(2);
 	cout << "Period " << start << ' ' << end << " cash " << cash << endl;
+	CashAnalyzer cashAnalyzer;
 
 	for (auto date = start; date < end; date += months{1}) {
 		sellAll(date, cash, portfolio);
+		cashAnalyzer.addBalance(cash);
 
-		const auto stocksAtHighs = findTickersAtHighs(stocks, date);
+		const auto stocksAtHighs = findAtHighs(stocks, date);
 		cout << "Stocks at highs on " << date;
 		for (const auto &ticker: stocksAtHighs)
 			cout << ' ' << ticker;
@@ -280,7 +283,7 @@ void strategyBuyAtHigh() {
 			for (const auto &ticker: stocksAtHighs)
 				buy(ticker, cash / stocksAtHighs.size(), date, cash, portfolio);
 		else {
-			const auto bondsAtHighs = findTickersAtHighs(bonds, date);
+			const auto bondsAtHighs = findAtHighs(bonds, date);
 			cout << "Bonds  at highs on " << date;
 			for (const auto &ticker: bondsAtHighs)
 				cout << ' ' << ticker;
@@ -296,9 +299,9 @@ void strategyBuyAtHigh() {
 	}
 
 	sellAll(end, cash, portfolio);
+	cashAnalyzer.addBalance(cash);
 
-	cout << "Total " << cash << endl;
-	analyzeResult(start, end, origCash, cash);
+	cashAnalyzer.result(start, end, cash, origCash);
 }
 
 int main() try {
