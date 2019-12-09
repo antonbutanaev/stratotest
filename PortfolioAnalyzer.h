@@ -8,7 +8,7 @@ public:
 	PortfolioAnalyzer();
 	void sellAll(Date date, Price &cash);
 	void buy(const Ticker &ticker, Price sum, Date date, Price &cash);
-	void result() const;
+	void result();
 
 private:
 	struct Position {
@@ -20,6 +20,7 @@ private:
 
 	struct Stat {
 		size_t numTrades{0};
+		std::vector<double> gaines;
 	};
 	std::map<Ticker, Stat> stat_;
 };

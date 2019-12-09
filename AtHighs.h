@@ -49,6 +49,8 @@ private:
 	};
 	Tickers bonds_{
 		"TLT",
+		"IEF",
+		"SHY",
 		"JNK",
 		"HYG",
 		"LQD",
