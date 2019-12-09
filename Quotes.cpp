@@ -8,6 +8,16 @@ using namespace date;
 Quotes::Quotes() {
 }
 
+void Quotes::loadQuotes(const Ticker &ticker, Date &begin, Date &end) {
+	get().parseQuotes(ticker);
+	const auto tickerBegin = get().getFisrtDate(ticker);
+	const auto tickerEnd = get().getLastDate(ticker);
+	if (!begin.ok() || begin < tickerBegin)
+		begin = tickerBegin;
+	if (!end.ok() || end > tickerEnd)
+		end = tickerEnd;
+}
+
 Date Quotes::getFisrtDate(const Ticker &ticker) {
 	const auto tickerIt = m_quotes.find(ticker);
 	if (tickerIt == m_quotes.end())

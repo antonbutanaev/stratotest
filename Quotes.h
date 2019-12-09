@@ -16,11 +16,12 @@ public:
 	Date getFisrtDate(const Ticker &);
 	Date getLastDate(const Ticker &);
 
+	static void loadQuotes(const Ticker &ticker, Date &begin, Date &end);
+
 	static Quotes &get() {
 		static Quotes quotes;
 		return quotes;
 	}
-
 private:
 	Quotes();
 	std::map<Ticker, std::map<Date, Price>> m_quotes;
