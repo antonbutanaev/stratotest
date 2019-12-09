@@ -4,6 +4,8 @@
 
 using namespace std;
 
+const Price comission = .4;
+
 PortfolioAnalyzer::PortfolioAnalyzer() {
 }
 
@@ -11,6 +13,7 @@ void PortfolioAnalyzer::sellAll(Date date, Price &cash) {
 	for (auto &position: portfolio_) {
 		const auto price = Quotes::get().getQuote(position.first, date);
 		cash += position.second.pos * price;
+		cash -= comission;
 		auto &stat = stat_[position.first];
 		stat.numTrades += 1;
 		stat.gaines.push_back(price / position.second.base - 1);
@@ -26,25 +29,29 @@ void PortfolioAnalyzer::buy(const Ticker &ticker, Price sum, Date date, Price &c
 	portfolio.base = (portfolio.base * portfolio.pos + num * price) / (portfolio.pos + num);
 	portfolio.pos += num;
 	cash -= num * price;
+	cash -= comission;
 }
 
 void PortfolioAnalyzer::result() {
 	cout << "Portfolio stat:" << endl;
 	for (auto &stat: stat_) {
 		cout << stat.first << " num " << stat.second.numTrades;
-		if (!stat.second.gaines.empty()) {
-			std::sort(stat.second.gaines.begin(), stat.second.gaines.end());
-			const auto avgGain = accumulate(stat.second.gaines.begin(), stat.second.gaines.end(), 0.) / stat.second.gaines.size();
+		auto &gaines = stat.second.gaines;
+		auto &profits = stat.second.profits;
+
+		if (!gaines.empty()) {
+			std::sort(gaines.begin(), gaines.end());
+			const auto avgGain = accumulate(gaines.begin(), gaines.end(), 0.) / gaines.size();
 			cout
 				<< " avgGain " << 100 * avgGain
-				<< "% median gain " << 100 * stat.second.gaines[stat.second.gaines.size()/2] << "%";
+				<< "% median gain " << 100 * gaines[gaines.size() / 2] << "%";
 
-			std::sort(stat.second.profits.begin(), stat.second.profits.end());
-			const auto totalProfit = accumulate(stat.second.profits.begin(), stat.second.profits.end(), 0.);
+			std::sort(profits.begin(), profits.end());
+			const auto totalProfit = accumulate(profits.begin(), profits.end(), 0.);
 			cout
 				<< " profit total " << totalProfit
-				<< " profit avg " << totalProfit / stat.second.profits.size()
-				<< " profit median " << stat.second.profits[stat.second.profits.size() / 2];
+				<< " profit avg " << totalProfit / profits.size()
+				<< " profit median " << profits[profits.size() / 2];
 
 		}
 		cout << endl;

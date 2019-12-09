@@ -30,6 +30,8 @@ private:
 		//"QUAL",
 		//"SOXX",
 		"SPLV",
+		//"EFAV",
+		//"USMV",
 		//"IBB",
 		//"IWM",
 		"VYM",
