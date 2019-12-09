@@ -239,18 +239,18 @@ void strategyBuyAtHigh() {
 
 	Tickers moneyEquiv = {"SHV"};
 
-	Date start = year{1900}/1/1;
-	Date end = year{2099}/1/1;
+	Date quotesStart = year{1900}/1/1;
+	Date quotesEnd = year{2099}/1/1;
 
 	const auto loadQuotes = [&](const Tickers &tickers) {
 		for (const auto &ticker: tickers) {
 			Quotes::get().parseQuotes(ticker);
 			const auto tickerStart = Quotes::get().getFisrtDate(ticker);
 			const auto tickerEnd = Quotes::get().getLastDate(ticker);
-			if (start < tickerStart)
-				start = tickerStart;
-			if (end > tickerEnd)
-				end = tickerEnd;
+			if (quotesStart < tickerStart)
+				quotesStart = tickerStart;
+			if (quotesEnd > tickerEnd)
+				quotesEnd = tickerEnd;
 		}
 	};
 
@@ -258,46 +258,52 @@ void strategyBuyAtHigh() {
 	loadQuotes(bonds);
 	loadQuotes(moneyEquiv);
 
-	start += months{1};
-	Price cash = 10000.;
-	Price origCash = cash;
-	Portfolio portfolio;
-	cout << fixed << setprecision(2);
-	cout << "Period " << start << ' ' << end << " cash " << cash << endl;
-	CashAnalyzer cashAnalyzer;
+	cout << "Quotes period " << quotesStart << ' ' << quotesEnd << endl;
+	quotesStart += months{1};
 
-	for (auto date = start; date < end; date += months{1}) {
-		sellAll(date, cash, portfolio);
-		cashAnalyzer.addBalance(cash);
+	const auto runStrategy = [&] (const Date &start, const Date &end) {
+		Price cash = 10000.;
+		Price origCash = cash;
+		Portfolio portfolio;
+		cout << fixed << setprecision(2);
+		cout << "Period " << start << ' ' << end << " cash " << cash << endl;
+		CashAnalyzer cashAnalyzer;
 
-		const auto stocksAtHighs = findAtHighs(stocks, date);
-		cout << "Stocks at highs on " << date;
-		for (const auto &ticker: stocksAtHighs)
-			cout << ' ' << ticker;
-		cout << endl;
+		for (auto date = start; date < end; date += months{1}) {
+			sellAll(date, cash, portfolio);
+			cashAnalyzer.addBalance(cash);
 
-		if (!stocksAtHighs.empty())
+			const auto stocksAtHighs = findAtHighs(stocks, date);
+			cout << "Stocks at highs on " << date;
 			for (const auto &ticker: stocksAtHighs)
-				buy(ticker, cash / stocksAtHighs.size(), date, cash, portfolio);
-		else {
-			const auto bondsAtHighs = findAtHighs(bonds, date);
-			cout << "Bonds  at highs on " << date;
-			for (const auto &ticker: bondsAtHighs)
 				cout << ' ' << ticker;
 			cout << endl;
 
-			if (!bondsAtHighs.empty())
+			if (!stocksAtHighs.empty())
+				for (const auto &ticker: stocksAtHighs)
+					buy(ticker, cash / stocksAtHighs.size(), date, cash, portfolio);
+			else {
+				const auto bondsAtHighs = findAtHighs(bonds, date);
+				cout << "Bonds  at highs on " << date;
 				for (const auto &ticker: bondsAtHighs)
-					buy(ticker, cash / bondsAtHighs.size(), date, cash, portfolio);
-			else
-				buy(moneyEquiv[0], cash, date, cash, portfolio);
+					cout << ' ' << ticker;
+				cout << endl;
+
+				if (!bondsAtHighs.empty())
+					for (const auto &ticker: bondsAtHighs)
+						buy(ticker, cash / bondsAtHighs.size(), date, cash, portfolio);
+				else
+					buy(moneyEquiv[0], cash, date, cash, portfolio);
+			}
+
 		}
 
-	}
+		sellAll(end, cash, portfolio);
+		cashAnalyzer.addBalance(cash);
+		cashAnalyzer.result(start, end, cash, origCash);
+	};
 
-	sellAll(end, cash, portfolio);
-	cashAnalyzer.addBalance(cash);
-	cashAnalyzer.result(start, end, cash, origCash);
+	runStrategy(quotesStart, quotesEnd);
 }
 
 int main() try {
