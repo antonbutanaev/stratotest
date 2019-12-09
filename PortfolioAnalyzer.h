@@ -17,6 +17,11 @@ private:
 	};
 	using Portfolio = std::map<Ticker, Position>;
 	Portfolio portfolio_;
+
+	struct Stat {
+		size_t numTrades{0};
+	};
+	std::map<Ticker, Stat> stat_;
 };
 
 #endif
