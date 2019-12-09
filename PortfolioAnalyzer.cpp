@@ -1,10 +1,9 @@
 #include <numeric>
 #include "Log.h"
+#include "Settings.h"
 #include "PortfolioAnalyzer.h"
 
 using namespace std;
-
-const Price comission = .4;
 
 PortfolioAnalyzer::PortfolioAnalyzer() {
 }
@@ -13,7 +12,7 @@ void PortfolioAnalyzer::sellAll(Date date, Price &cash) {
 	for (auto &position: portfolio_) {
 		const auto price = Quotes::get().getQuote(position.first, date);
 		cash += position.second.pos * price;
-		cash -= comission;
+		cash -= Settings::get().comission;
 		auto &stat = stat_[position.first];
 		stat.numTrades += 1;
 		stat.gaines.push_back(price / position.second.base - 1);
@@ -29,10 +28,13 @@ void PortfolioAnalyzer::buy(const Ticker &ticker, Price sum, Date date, Price &c
 	portfolio.base = (portfolio.base * portfolio.pos + num * price) / (portfolio.pos + num);
 	portfolio.pos += num;
 	cash -= num * price;
-	cash -= comission;
+	cash -= Settings::get().comission;
 }
 
 void PortfolioAnalyzer::result() {
+	if (!Settings::get().log.positionAnalyzer)
+		return;
+
 	cout << "Portfolio stat:" << endl;
 	for (auto &stat: stat_) {
 		cout << stat.first << " num " << stat.second.numTrades;

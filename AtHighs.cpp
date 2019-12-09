@@ -2,6 +2,7 @@
 #include "AtHighs.h"
 #include "CashAnalyzer.h"
 #include "PortfolioAnalyzer.h"
+#include "Settings.h"
 
 using namespace std;
 using namespace date;
@@ -21,7 +22,7 @@ AtHighs::AtHighs() {
 }
 
 Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
-	const size_t numBack = 12;
+	const size_t numBack = Settings::get().atHighs.numLookBack;
 
 	struct S {
 		Ticker ticker;

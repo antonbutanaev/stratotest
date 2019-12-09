@@ -9,6 +9,7 @@ add_executable(stratotest
 	CashAnalyzer.cpp
 	PortfolioAnalyzer.cpp
 	AtHighs.cpp
+	Settings.cpp
 )
 
 target_link_libraries(stratotest date)
