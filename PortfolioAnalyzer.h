@@ -21,6 +21,7 @@ private:
 	struct Stat {
 		size_t numTrades{0};
 		std::vector<double> gaines;
+		std::vector<Price> profits;
 	};
 	std::map<Ticker, Stat> stat_;
 };
