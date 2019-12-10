@@ -30,7 +30,7 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 		double gain;
 
 		void print() const {
-			::print(ticker, gain, NoCR);
+			::print(ticker, gain, NoEOL);
 		}
 	};
 	vector<S> atHighs;

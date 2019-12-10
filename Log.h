@@ -40,9 +40,9 @@ void printWrap(const std::vector<T> &v) {
 	}
 }
 
-enum NoCR_ {NoCR};
+enum NoEOL_ {NoEOL};
 
-inline void print(NoCR_) {}
+inline void print(NoEOL_) {}
 
 template <typename T>
 void print(const T &t) {
