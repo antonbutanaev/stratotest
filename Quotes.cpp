@@ -92,9 +92,10 @@ void Quotes::parseQuotes(const std::string &ticker) {
 	}
 
 	if (Settings::get().quotes.logResult) {
-		if (!headerPrinted_) {
+		static bool headerPrinted = false;
+		if (!headerPrinted) {
 			print("Ticker", "Num", "Begin", "End");
-			headerPrinted_ = true;
+			headerPrinted = true;
 		}
 		if (!m_quotes[ticker].empty())
 			print(ticker, m_quotes[ticker].size(), m_quotes[ticker].begin()->first, prev(m_quotes[ticker].end())->first);
