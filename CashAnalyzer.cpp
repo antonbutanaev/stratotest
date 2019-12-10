@@ -1,8 +1,8 @@
 #include <cmath>
 #include <numeric>
-
 #include "CashAnalyzer.h"
 #include "Log.h"
+#include "Settings.h"
 
 using namespace std;
 
@@ -35,12 +35,10 @@ void CashAnalyzer::addBalance(Price sum) {
 		if (maxDrawDown_ > drawDown)
 			maxDrawDown_ = drawDown;
 
-		LOG("=== CASH "
-			<< sum
-			<< " change " << 100. * gain << "%"
-			<< " DD " << drawDown  << "%"
-		);
-
+		if (Settings::get().cashAnalyzer.log) {
+			print("CASH", "Prev", "Gain%", "DD%");
+			print(sum, prev_, 100. * gain, drawDown);
+		}
 	}
 	prev_ = sum;
 }

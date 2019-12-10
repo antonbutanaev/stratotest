@@ -23,6 +23,10 @@ struct Settings {
 		bool analyze{true};
 	} positionAnalyzer;
 
+	struct {
+		bool log{true};
+	} cashAnalyzer;
+
 	static Settings get() {
 		static Settings settings;
 		return settings;
