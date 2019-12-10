@@ -76,7 +76,6 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 			break;
 		res.push_back(it.ticker);
 	}
-
 	return res;
 }
 
@@ -93,18 +92,20 @@ void AtHighs::run(Price cash, const Date &begin, const Date &end) {
 		if (Settings::get().atHighs.logStrategy)
 			print("Stocks at highs on ", date, stocksAtHighs);
 
-		if (!stocksAtHighs.empty())
+		if (!stocksAtHighs.empty()) {
+			const auto sum = cash / stocksAtHighs.size();
 			for (const auto &ticker: stocksAtHighs)
-				portfolioAnalyzer.buy(ticker, cash / stocksAtHighs.size(), date, cash);
-		else {
+				portfolioAnalyzer.buy(ticker, sum, date, cash);
+		} else {
 			const auto bondsAtHighs = findAtHighs(bonds_, date);
 			if (Settings::get().atHighs.logStrategy)
 				print("Stocks at highs on ", date, bondsAtHighs);
 
-			if (!bondsAtHighs.empty())
+			if (!bondsAtHighs.empty()) {
+				const auto sum = cash / bondsAtHighs.size();
 				for (const auto &ticker: bondsAtHighs)
-					portfolioAnalyzer.buy(ticker, cash / bondsAtHighs.size(), date, cash);
-			else
+					portfolioAnalyzer.buy(ticker, sum, date, cash);
+			} else
 				portfolioAnalyzer.buy(moneyEquiv_[0], cash, date, cash);
 		}
 

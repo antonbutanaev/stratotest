@@ -5,18 +5,23 @@
 
 struct Settings {
 	Price comission{.5};
+
 	struct {
 		bool logParse{false};
 		bool logResult{true};
 	} quotes;
+
 	struct {
 		size_t numLookBack{12};
 		size_t numToBuy{3};
 		bool logStrategy{true};
 	} atHighs;
+
 	struct {
-		bool positionAnalyzer{true};
-	} log;
+		bool logBuy{true};
+		bool logSell{true};
+		bool analyze{true};
+	} positionAnalyzer;
 
 	static Settings get() {
 		static Settings settings;
