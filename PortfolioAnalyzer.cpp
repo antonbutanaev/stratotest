@@ -34,28 +34,25 @@ void PortfolioAnalyzer::buy(const Ticker &ticker, Price sum, Date date, Price &c
 void PortfolioAnalyzer::result() {
 	if (!Settings::get().log.positionAnalyzer)
 		return;
-
-	cout << "Portfolio stat:" << endl;
+	print("PORTFOLIO STAT");
+	print("Ticker", "Num", "AvgGain", "MedGain", "Profit", "AvgProfit", "MedProfit");
 	for (auto &stat: stat_) {
-		cout << stat.first << " num " << stat.second.numTrades;
 		auto &gaines = stat.second.gaines;
 		auto &profits = stat.second.profits;
-
 		if (!gaines.empty()) {
 			std::sort(gaines.begin(), gaines.end());
 			const auto avgGain = accumulate(gaines.begin(), gaines.end(), 0.) / gaines.size();
-			cout
-				<< " avgGain " << 100 * avgGain
-				<< "% median gain " << 100 * gaines[gaines.size() / 2] << "%";
-
 			std::sort(profits.begin(), profits.end());
-			const auto totalProfit = accumulate(profits.begin(), profits.end(), 0.);
-			cout
-				<< " profit total " << totalProfit
-				<< " profit avg " << totalProfit / profits.size()
-				<< " profit median " << profits[profits.size() / 2];
-
+			const auto profit = accumulate(profits.begin(), profits.end(), 0.);
+			print(
+				stat.first,
+				stat.second.numTrades,
+				100 * avgGain,
+				100 * gaines[gaines.size() / 2],
+				profit,
+				profit / profits.size(),
+				profits[profits.size() / 2]
+			);
 		}
-		cout << endl;
 	}
 }

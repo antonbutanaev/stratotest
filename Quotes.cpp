@@ -1,6 +1,7 @@
 #include <fstream>
 #include "Log.h"
 #include "Quotes.h"
+#include "Settings.h"
 
 using namespace std;
 using namespace date;
@@ -57,12 +58,12 @@ void Quotes::parseQuotes(const std::string &ticker) {
 	if (header != "Date,Open,High,Low,Close,Adj Close,Volume")
 		throw std::runtime_error("Wrong quote file format");
 
+	if (Settings::get().quotes.logParse)
+		print("Ticker", "Date", "Open", "High", "Low", "Close", "AdjClose", "Volume");
 	while (in.peek(), !in.eof()) {
 		int yi, mi, di;
 		char dash;
 		in >> yi >> dash >> mi >> dash >> di;
-
-		LOG0("Date: " << yi << ':' << mi << ':' << di << ' ');
 
 		char comma, nl;
 		Price open, high, low, close, adjClose;
@@ -75,22 +76,29 @@ void Quotes::parseQuotes(const std::string &ticker) {
 			>> adjClose >> comma
 			>> volume >> nl;
 
-		LOG0("Quote: "
-			open << ' '
-			<< high << ' '
-			<< low << ' '
-			<< close << ' '
-			<< adjClose << ' '
-			<< volume
-		);
+		if (Settings::get().quotes.logParse)
+			print(
+				ticker,
+				year{yi}/mi/di,
+				open,
+				high,
+				low,
+				close,
+				adjClose,
+				volume
+			);
 
 		m_quotes[ticker][year{yi}/mi/di] = adjClose;
 	}
 
-	cout << "Quotes for " << ticker << " num " << m_quotes[ticker].size();
-	if (!m_quotes[ticker].empty())
-		cout << " begin on " << m_quotes[ticker].begin()->first;
-	cout << endl;
+	if (Settings::get().quotes.logResult) {
+		if (!headerPrinted_) {
+			print("Ticker", "Num", "Begin", "End");
+			headerPrinted_ = true;
+		}
+		if (!m_quotes[ticker].empty())
+			print(ticker, m_quotes[ticker].size(), m_quotes[ticker].begin()->first, prev(m_quotes[ticker].end())->first);
+	}
 }
 
 

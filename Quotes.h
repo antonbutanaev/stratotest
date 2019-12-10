@@ -25,6 +25,7 @@ public:
 private:
 	Quotes();
 	std::map<Ticker, std::map<Date, Price>> m_quotes;
+	bool headerPrinted_{false};
 };
 
 #endif

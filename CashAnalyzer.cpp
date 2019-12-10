@@ -16,11 +16,11 @@ void CashAnalyzer::addBalance(Price sum) {
 			max_ = sum;
 
 		if (sum < max_)
-			++numInMinus_;
+			++numInLoss_;
 		else {
-			if (maxNumInMinus_ < numInMinus_)
-				maxNumInMinus_ = numInMinus_;
-			numInMinus_ = 0;
+			if (maxNumInLoss_ < numInLoss_)
+				maxNumInLoss_ = numInLoss_;
+			numInLoss_ = 0;
 		}
 
 		if (gain < 0)
@@ -47,7 +47,7 @@ void CashAnalyzer::addBalance(Price sum) {
 
 void CashAnalyzer::result(Date startDate, Date endDate, Price cash, Price origCash) {
 	if (gaines_.empty()) {
-		cout << "NO RESULT" << endl;
+		print("NO RESULT");
 		return;
 	}
 
@@ -56,16 +56,18 @@ void CashAnalyzer::result(Date startDate, Date endDate, Price cash, Price origCa
 	const auto rate = cash / origCash;
 	const auto numMonths = (endDate.year()/endDate.month() - startDate.year()/startDate.month()).count();
 	const auto annual = pow(rate, 12./numMonths);
-	LOG("RESULT "
-		<< startDate << " " << endDate
-		<< " years " << numMonths/12.
-		<< " result " << cash << " rate " << rate << " annual " << 100 * (annual - 1) << "%"
-		<< " max in minus " << maxNumInMinus_
-		<< " max cont losses " << maxNumContLosses_
-		<< " max dd " << maxDrawDown_ << "%"
-		<< " median gain " << 100 * gaines_[gaines_.size() / 2] << "%"
-		<< " avg gain " << 100 * avgGain << "%"
-
+	print("RESULT");
+	print("Start", "End", "Years", "EndCash", "Rate", "Annual", "MaxInLoss", "MaxContLoss", "MaxDD", "AvgGain", "MedGain");
+	print(
+		startDate,
+		endDate,
+		numMonths/12.,
+		cash,
+		100 * (annual - 1),
+		maxNumInLoss_,
+		maxNumContLosses_,
+		maxDrawDown_,
+		100 * avgGain,
+		100 * gaines_[gaines_.size() / 2]
 	);
-
 }
