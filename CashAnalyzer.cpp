@@ -45,7 +45,6 @@ void CashAnalyzer::addBalance(Price sum) {
 
 void CashAnalyzer::result(Date startDate, Date endDate, Price cash, Price origCash) {
 	if (gaines_.empty()) {
-		print("NO RESULT");
 		return;
 	}
 
@@ -54,8 +53,11 @@ void CashAnalyzer::result(Date startDate, Date endDate, Price cash, Price origCa
 	const auto rate = cash / origCash;
 	const auto numMonths = (endDate.year()/endDate.month() - startDate.year()/startDate.month()).count();
 	const auto annual = pow(rate, 12./numMonths);
-	print("RESULT");
-	print("Start", "End", "Years", "EndCash", "Rate", "Annual", "MaxInLoss", "MaxContLoss", "MaxDD", "AvgGain", "MedGain");
+	static bool titlePrinted = false;
+	if (!titlePrinted) {
+		print("Start", "End", "Years", "EndCash", "Rate", "Annual", "MaxInLoss", "MaxContLoss", "MaxDD", "AvgGain", "MedGain");
+		titlePrinted = true;
+	}
 	print(
 		startDate,
 		endDate,

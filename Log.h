@@ -32,9 +32,8 @@ template <typename T>
 void printWrap(const std::vector<T> &v) {
 	bool first = true;
 	for(const auto &t: v) {
-		if (!first) {
+		if (!first)
 			std::cout << '\t';
-		}
 		first = false;
 		printWrap(t);
 	}

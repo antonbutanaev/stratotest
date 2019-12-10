@@ -19,7 +19,8 @@ AtHighs::AtHighs() {
 	loadQuotes(moneyEquiv_);
 
 	quotesStart_ += months{1};
-	print("Quotes period", quotesStart_, quotesEnd_);
+	if (Settings::get().atHighs.logStrategy)
+		print("Quotes period", quotesStart_, quotesEnd_);
 }
 
 Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
@@ -68,7 +69,8 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 	std::sort(atHighs.begin(), atHighs.end(), [](auto a, auto b) {
 		return a.gain < b.gain;
 	});
-	print("At highs, sorted by prev month gain", atHighs);
+	if (Settings::get().atHighs.logStrategy)
+		print("At highs, sorted by prev month gain", atHighs);
 	Tickers res;
 	size_t num = 0;
 	for (const auto &it: atHighs) {
