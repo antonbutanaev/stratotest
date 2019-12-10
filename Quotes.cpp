@@ -9,6 +9,58 @@ using namespace date;
 Quotes::Quotes() {
 }
 
+void Quotes::calcEMA(size_t period) {
+	const auto k = 2. / (period + 1);
+	for (const auto &quotes: m_quotes) {
+		const auto &ticker = quotes.first;
+		const auto &prices = quotes.second;
+		if (prices.empty())
+			continue;
+
+		static bool header = false;
+		if (!header && Settings::get().quotes.logEma) {
+			print("Ticker", "Date", "Price", "Ema");
+			header = true;
+		}
+
+		auto prevEma = prices.begin()->second;
+		m_ema[ticker][prices.begin()->first] = prevEma;
+		if (Settings::get().quotes.logEma)
+			print(
+				ticker,
+				prices.begin()->first,
+				prevEma,
+				prevEma
+			);
+
+		for (auto priceIt = next(prices.begin()); priceIt != prices.end(); ++priceIt) {
+			const auto price = priceIt->second;
+			const auto ema = k * price + (1 - k) * prevEma;
+			m_ema[ticker][priceIt->first] = ema;
+			if (Settings::get().quotes.logEma)
+				print(
+					ticker,
+					priceIt->first,
+					price,
+					ema
+				);
+			prevEma = ema;
+		}
+	}
+}
+
+Price Quotes::getEMA(const Ticker &ticker, const Date &date) {
+	const auto tickerIt = m_ema.find(ticker);
+	if (tickerIt == m_ema.end())
+		THROW("Quotes::getEMA ticker " << ticker << " not found");
+
+	const auto priceIt = tickerIt->second.find(date);
+	if (priceIt == tickerIt->second.end())
+		THROW("Quotes::getEma ticker " << ticker << " date " << date << " not found");
+
+	return priceIt->second;
+}
+
 void Quotes::loadQuotes(const Ticker &ticker, Date &begin, Date &end) {
 	get().parseQuotes(ticker);
 	const auto tickerBegin = get().getFisrtDate(ticker);
@@ -22,25 +74,25 @@ void Quotes::loadQuotes(const Ticker &ticker, Date &begin, Date &end) {
 Date Quotes::getFisrtDate(const Ticker &ticker) {
 	const auto tickerIt = m_quotes.find(ticker);
 	if (tickerIt == m_quotes.end())
-		THROW("Quotes::getQuote tikcer " << ticker << " not found");
+		THROW("Quotes::getQuote ticker " << ticker << " not found");
 	return tickerIt->second.begin()->first;
 }
 
 Date Quotes::getLastDate(const Ticker &ticker) {
 	const auto tickerIt = m_quotes.find(ticker);
 	if (tickerIt == m_quotes.end())
-		THROW("Quotes::getQuote tikcer " << ticker << " not found");
+		THROW("Quotes::getQuote ticker " << ticker << " not found");
 	return std::prev(tickerIt->second.end())->first;
 }
 
 Price Quotes::getQuote(const Ticker &ticker, const Date &date) {
 	const auto tickerIt = m_quotes.find(ticker);
 	if (tickerIt == m_quotes.end())
-		THROW("Quotes::getQuote tikcer " << ticker << " not found");
+		THROW("Quotes::getQuote ticker " << ticker << " not found");
 
 	const auto priceIt = tickerIt->second.find(date);
 	if (priceIt == tickerIt->second.end())
-		THROW("Quotes::getQuote tikcer " << ticker << " date " << date << " not found");
+		THROW("Quotes::getQuote ticker " << ticker << " date " << date << " not found");
 
 	return priceIt->second;
 }

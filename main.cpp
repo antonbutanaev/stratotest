@@ -11,6 +11,8 @@ int main() try {
 	cout << fixed << setprecision(2);
 	AtHighs atHighs;
 
+	Quotes::get().calcEMA(10);
+
 	if (1)
 		for (Date d = atHighs.quotesStart(); d < atHighs.quotesEnd(); d += months{1})
 			atHighs.run(10000., d, atHighs.quotesEnd());

@@ -16,6 +16,9 @@ public:
 	Date getFisrtDate(const Ticker &);
 	Date getLastDate(const Ticker &);
 
+	void calcEMA(size_t period);
+	Price getEMA(const Ticker &, const Date &);
+
 	static void loadQuotes(const Ticker &ticker, Date &begin, Date &end);
 
 	static Quotes &get() {
@@ -25,6 +28,7 @@ public:
 private:
 	Quotes();
 	std::map<Ticker, std::map<Date, Price>> m_quotes;
+	std::map<Ticker, std::map<Date, Price>> m_ema;
 };
 
 #endif
