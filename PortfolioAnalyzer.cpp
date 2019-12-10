@@ -25,8 +25,7 @@ void PortfolioAnalyzer::sellAll(Date date, Price &cash) {
 				position.second.pos,
 				price,
 				100 * stat.gaines.back(),
-				stat.profits.back(),
-				cash
+				stat.profits.back()
 			);
 	}
 	portfolio_.clear();
@@ -46,8 +45,7 @@ void PortfolioAnalyzer::buy(const Ticker &ticker, Price sum, Date date, Price &c
 			ticker,
 			date,
 			num,
-			price,
-			cash
+			price
 		);
 }
 

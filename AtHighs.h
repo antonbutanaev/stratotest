@@ -19,12 +19,11 @@ private:
 		//"VTI",
 		//"VEA",
 		//"VWO",
-
 		"SPY",
 		"GDX",
 		"IAU",
 		"QQQ",
-		//"MOAT",
+		"MOAT",
 		//"MTUM",
 		//"NOBL",
 		//"QUAL",
