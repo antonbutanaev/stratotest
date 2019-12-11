@@ -15,13 +15,13 @@ struct Settings {
 	struct {
 		size_t numLookBack{12};
 		size_t numToBuy{3};
-		bool logStrategy{true};
+		bool logStrategy{false};
 		bool logFindHighs{false};
 	} atHighs;
 
 	struct {
-		bool logBuy{true};
-		bool logSell{true};
+		bool logBuy{false};
+		bool logSell{false};
 		bool analyze{false};
 	} positionAnalyzer;
 

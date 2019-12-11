@@ -81,7 +81,7 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 }
 
 void AtHighs::run(Price cash, const Date &begin, const Date &end) {
-	v3(cash, begin, end);
+	v1(cash, begin, end);
 }
 
 void AtHighs::v2(Price cash, const Date &begin, const Date &end) {

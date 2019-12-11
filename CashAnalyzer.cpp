@@ -52,6 +52,12 @@ void CashAnalyzer::result(Date startDate, Date endDate, Price cash, Price origCa
 		return;
 	}
 
+	if (maxNumInLoss_ < numInLoss_)
+		maxNumInLoss_ = numInLoss_;
+
+	if (maxNumContLosses_ < numContLosses_)
+		maxNumContLosses_ = numContLosses_;
+
 	std::sort(gaines_.begin(), gaines_.end());
 	const auto avgGain = accumulate(gaines_.begin(), gaines_.end(), 0.) / gaines_.size();
 	const auto rate = cash / origCash;
