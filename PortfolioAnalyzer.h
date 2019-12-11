@@ -7,7 +7,9 @@ class PortfolioAnalyzer {
 public:
 	PortfolioAnalyzer();
 	void sellAll(Date date, Price &cash);
+	void sell(const Ticker &ticker, Date date, Price &cash);
 	void buy(const Ticker &ticker, Price sum, Date date, Price &cash);
+	Price value(Date date) const;
 	void result();
 
 private:

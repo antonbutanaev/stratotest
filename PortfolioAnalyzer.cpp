@@ -8,26 +8,41 @@ using namespace std;
 PortfolioAnalyzer::PortfolioAnalyzer() {
 }
 
+void PortfolioAnalyzer::sell(const Ticker &ticker, Date date, Price &cash) {
+	const auto portfolioIt = portfolio_.find(ticker);
+	if (portfolioIt == portfolio_.end())
+		THROW("Could not sell " << ticker << " on " << date);
+
+	const auto &position = *portfolioIt;
+	const auto price = Quotes::get().getQuote(ticker, date);
+	cash += position.second.pos * price;
+	cash -= Settings::get().comission;
+	auto &stat = stat_[position.first];
+	stat.numTrades += 1;
+	stat.gaines.push_back(price / position.second.base - 1);
+	stat.profits.push_back(position.second.pos * (price - position.second.base));
+	printIf(
+		Settings::get().positionAnalyzer.logSell,
+		"Sell",
+		position.first,
+		date,
+		position.second.pos,
+		price,
+		100 * stat.gaines.back(),
+		stat.profits.back()
+	);
+}
+
+Price PortfolioAnalyzer::value(Date date) const {
+	Price res = 0;
+	for (auto &position: portfolio_)
+		res += position.second.pos * Quotes::get().getQuote(position.first, date);
+	return res;
+}
+
 void PortfolioAnalyzer::sellAll(Date date, Price &cash) {
-	for (auto &position: portfolio_) {
-		const auto price = Quotes::get().getQuote(position.first, date);
-		cash += position.second.pos * price;
-		cash -= Settings::get().comission;
-		auto &stat = stat_[position.first];
-		stat.numTrades += 1;
-		stat.gaines.push_back(price / position.second.base - 1);
-		stat.profits.push_back(position.second.pos * (price - position.second.base));
-		printIf(
-			Settings::get().positionAnalyzer.logSell,
-			"Sell",
-			position.first,
-			date,
-			position.second.pos,
-			price,
-			100 * stat.gaines.back(),
-			stat.profits.back()
-		);
-	}
+	for (auto &position: portfolio_)
+		sell(position.first, date, cash);
 	portfolio_.clear();
 }
 
