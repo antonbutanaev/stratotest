@@ -13,9 +13,11 @@ int main() try {
 
 	const auto cash = 10000.;
 	if (1)
-		for (Date d = atHighs.quotesStart(); d < atHighs.quotesEnd(); d += months{1})
+		for (Date d = atHighs.quotesStart(); d < atHighs.quotesEnd(); d += months{1}) {
 			atHighs.run(cash, d, atHighs.quotesEnd());
-	if (1) {
+			break;
+		}
+	if (0) {
 		for (size_t years = 1; years <= 5; ++years) {
 			const auto spanMonths = years * 12;
 			for (Date d = atHighs.quotesStart(); d < atHighs.quotesEnd() - months{spanMonths} ; d += months{1})

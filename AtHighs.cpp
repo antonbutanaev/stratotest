@@ -1,4 +1,6 @@
 #include <iostream>
+#include <algorithm>
+
 #include "AtHighs.h"
 #include "CashAnalyzer.h"
 #include "PortfolioAnalyzer.h"
@@ -48,11 +50,11 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 		if (date < firstDate)
 			date = firstDate;
 
-		printIf(Settings::get().atHighs.logStrategy, "Analyze prices", ticker, date, onDate);
+		printIf(Settings::get().atHighs.logFindHighs, "Analyze prices", ticker, date, onDate);
 
 		for (; date < onDate; date += months{1}) {
 			const auto price = Quotes::get().getQuote(ticker, date);
-			printIf(Settings::get().atHighs.logStrategy, date, onDate, price, priceOnDate);
+			printIf(Settings::get().atHighs.logFindHighs, date, onDate, price, priceOnDate);
 
 			if (price > priceOnDate) {
 				atHigh = false;
@@ -62,7 +64,7 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 		}
 		if (atHigh) {
 			const auto gain = 100 * (priceOnDate / Quotes::get().getQuote(ticker, onDate - months{1}) - 1);
-			printIf(Settings::get().atHighs.logStrategy, "At high, prev month gain", gain);
+			printIf(Settings::get().atHighs.logFindHighs, "At high, prev month gain", gain);
 
 			atHighs.push_back(S{{}, ticker, gain});
 		}
@@ -79,7 +81,7 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 }
 
 void AtHighs::run(Price cash, const Date &begin, const Date &end) {
-	v1(cash, begin, end);
+	v2(cash, begin, end);
 }
 
 void AtHighs::v2(Price cash, const Date &begin, const Date &end) {
@@ -94,6 +96,82 @@ void AtHighs::v2(Price cash, const Date &begin, const Date &end) {
 
 	// нет бондов на хаях
 	// сидим в эквиваленте кеша
+	const auto origCash = cash;
+	CashAnalyzer cashAnalyzer;
+	PortfolioAnalyzer portfolioAnalyzer;
+
+	for (auto date = begin; date < end; date += months{1}) {
+		printIf(
+			Settings::get().atHighs.logStrategy,
+			"Date",
+			date
+		);
+
+		cashAnalyzer.addBalance(cash + portfolioAnalyzer.value(date));
+
+		const auto rebalance = [&](const Tickers &atHighs) {
+			if (atHighs.empty())
+				return false;
+
+			auto atHighsSorted = atHighs;
+			sort(atHighsSorted.begin(), atHighsSorted.end());
+			auto portfolio = portfolioAnalyzer.portfolio();
+			// продажа всего, что не на хаях
+			Tickers toSell;
+			set_difference(
+				portfolio.begin(), portfolio.end(),
+				atHighsSorted.begin(), atHighsSorted.end(),
+				back_inserter(toSell)
+			);
+			for (const auto &ticker: toSell)
+				portfolioAnalyzer.sell(ticker, date, cash);
+
+			const auto numPositions = portfolioAnalyzer.numPositions();
+			printIf(
+				Settings::get().atHighs.logStrategy,
+				"Positions: has, need",
+				numPositions, Settings::get().atHighs.numToBuy
+			);
+
+			if (Settings::get().atHighs.numToBuy > numPositions) {
+				auto numToBuy = Settings::get().atHighs.numToBuy - numPositions;
+				Tickers toBuy;
+				const auto portfolio = portfolioAnalyzer.portfolio();
+				for (const auto &ticker: atHighs)
+					if (!binary_search(portfolio.begin(), portfolio.end(), ticker)) {
+						toBuy.push_back(ticker);
+						if (--numToBuy == 0)
+							break;
+					}
+
+				Price sum = cash / toBuy.size();
+				for (const auto &ticker: toBuy)
+					portfolioAnalyzer.buy(ticker, sum, date, cash);
+			}
+
+			return true;
+		};
+
+		if (
+			!rebalance(findAtHighs(stocks_, date)) &&
+			!rebalance(findAtHighs(bonds_, date))
+		) {
+			portfolioAnalyzer.sellAll(date, cash);
+			portfolioAnalyzer.buy(moneyEquiv_[0], cash, date, cash);
+
+		}
+	}
+
+	printIf(
+		Settings::get().atHighs.logStrategy,
+		"End",
+		end
+	);
+
+	portfolioAnalyzer.sellAll(end, cash);
+	cashAnalyzer.addBalance(cash);
+	cashAnalyzer.result(begin, end, cash, origCash);
+	portfolioAnalyzer.result();
 }
 
 void AtHighs::v1(Price cash, const Date &begin, const Date &end) {
