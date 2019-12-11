@@ -8,7 +8,7 @@ struct Settings {
 
 	struct {
 		bool logParse{false};
-		bool logEma{true};
+		bool logEma{false};
 		bool logResult{false};
 	} quotes;
 

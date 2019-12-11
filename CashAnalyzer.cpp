@@ -35,10 +35,14 @@ void CashAnalyzer::addBalance(Price sum) {
 		if (maxDrawDown_ > drawDown)
 			maxDrawDown_ = drawDown;
 
-		if (Settings::get().cashAnalyzer.log) {
-			print("CASH", "Prev", "Gain%", "DD%");
-			print(sum, prev_, 100. * gain, drawDown);
-		}
+		printIf(
+			Settings::get().cashAnalyzer.log,
+			"CASH", "Prev", "Gain%", "DD%"
+		);
+		printIf(
+			Settings::get().cashAnalyzer.log,
+			sum, prev_, 100. * gain, drawDown
+		);
 	}
 	prev_ = sum;
 }
@@ -53,16 +57,20 @@ void CashAnalyzer::result(Date startDate, Date endDate, Price cash, Price origCa
 	const auto rate = cash / origCash;
 	const auto numMonths = (endDate.year()/endDate.month() - startDate.year()/startDate.month()).count();
 	const auto annual = pow(rate, 12./numMonths);
+
 	static bool titlePrinted = false;
-	if (!titlePrinted) {
-		print("Start", "End", "Years", "EndCash", "Rate", "Annual", "MaxInLoss", "MaxContLoss", "MaxDD", "AvgGain", "MedGain");
-		titlePrinted = true;
-	}
+	printIf(
+		!titlePrinted,
+		"Start", "End", "Years", "EndCash", "Rate", "Annual", "MaxInLoss", "MaxContLoss", "MaxDD", "AvgGain", "MedGain"
+	);
+	titlePrinted = true;
+
 	print(
 		startDate,
 		endDate,
 		numMonths/12.,
 		cash,
+		rate,
 		100 * (annual - 1),
 		maxNumInLoss_,
 		maxNumContLosses_,

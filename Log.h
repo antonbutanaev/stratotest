@@ -56,4 +56,10 @@ void print(const T &t, const Rest &...rest) {
 	print(rest...);
 }
 
+template <typename... T>
+void printIf(bool doPrint, const T &...t) {
+	if (doPrint)
+		print(t...);
+}
+
 #endif

@@ -11,16 +11,16 @@ int main() try {
 	cout << fixed << setprecision(2);
 	AtHighs atHighs;
 
-	Quotes::get().calcEMA(10);
-
+	const auto cash = 10000.;
 	if (1)
 		for (Date d = atHighs.quotesStart(); d < atHighs.quotesEnd(); d += months{1})
-			atHighs.run(10000., d, atHighs.quotesEnd());
+			atHighs.run(cash, d, atHighs.quotesEnd());
 	if (1) {
-		size_t span = 24;
-		for (Date d = atHighs.quotesStart(); d < atHighs.quotesEnd() - months{span} ; d += months{1})
-			atHighs.run(10000., d, d + months{span});
-
+		for (size_t years = 1; years <= 5; ++years) {
+			const auto spanMonths = years * 12;
+			for (Date d = atHighs.quotesStart(); d < atHighs.quotesEnd() - months{spanMonths} ; d += months{1})
+				atHighs.run(cash, d, d + months{spanMonths});
+		}
 	}
 
 	return 0;

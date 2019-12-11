@@ -17,33 +17,34 @@ void Quotes::calcEMA(size_t period) {
 		if (prices.empty())
 			continue;
 
-		static bool header = false;
-		if (!header && Settings::get().quotes.logEma) {
-			print("Ticker", "Date", "Price", "Ema");
-			header = true;
-		}
+		static bool titlePrinted = false;
+		printIf(
+			!titlePrinted && Settings::get().quotes.logEma,
+			"Ticker", "Date", "Price", "Ema"
+		);
+		titlePrinted = true;
 
 		auto prevEma = prices.begin()->second;
 		m_ema[ticker][prices.begin()->first] = prevEma;
-		if (Settings::get().quotes.logEma)
-			print(
-				ticker,
-				prices.begin()->first,
-				prevEma,
-				prevEma
-			);
+		printIf(
+			Settings::get().quotes.logEma,
+			ticker,
+			prices.begin()->first,
+			prevEma,
+			prevEma
+		);
 
 		for (auto priceIt = next(prices.begin()); priceIt != prices.end(); ++priceIt) {
 			const auto price = priceIt->second;
 			const auto ema = k * price + (1 - k) * prevEma;
 			m_ema[ticker][priceIt->first] = ema;
-			if (Settings::get().quotes.logEma)
-				print(
-					ticker,
-					priceIt->first,
-					price,
-					ema
-				);
+			printIf(
+				Settings::get().quotes.logEma,
+				ticker,
+				priceIt->first,
+				price,
+				ema
+			);
 			prevEma = ema;
 		}
 	}
@@ -110,8 +111,10 @@ void Quotes::parseQuotes(const std::string &ticker) {
 	if (header != "Date,Open,High,Low,Close,Adj Close,Volume")
 		throw std::runtime_error("Wrong quote file format");
 
-	if (Settings::get().quotes.logParse)
-		print("Ticker", "Date", "Open", "High", "Low", "Close", "AdjClose", "Volume");
+	printIf(
+		Settings::get().quotes.logParse,
+		"Ticker", "Date", "Open", "High", "Low", "Close", "AdjClose", "Volume"
+	);
 	while (in.peek(), !in.eof()) {
 		int yi, mi, di;
 		char dash;
@@ -128,27 +131,26 @@ void Quotes::parseQuotes(const std::string &ticker) {
 			>> adjClose >> comma
 			>> volume >> nl;
 
-		if (Settings::get().quotes.logParse)
-			print(
-				ticker,
-				year{yi}/mi/di,
-				open,
-				high,
-				low,
-				close,
-				adjClose,
-				volume
-			);
+		printIf(
+			Settings::get().quotes.logParse,
+			ticker,
+			year{yi}/mi/di,
+			open,
+			high,
+			low,
+			close,
+			adjClose,
+			volume
+		);
 
 		m_quotes[ticker][year{yi}/mi/di] = adjClose;
 	}
 
 	if (Settings::get().quotes.logResult) {
 		static bool headerPrinted = false;
-		if (!headerPrinted) {
-			print("Ticker", "Num", "Begin", "End");
-			headerPrinted = true;
-		}
+		printIf(!headerPrinted, "Ticker", "Num", "Begin", "End");
+		headerPrinted = true;
+
 		if (!m_quotes[ticker].empty())
 			print(ticker, m_quotes[ticker].size(), m_quotes[ticker].begin()->first, prev(m_quotes[ticker].end())->first);
 	}

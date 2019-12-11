@@ -19,8 +19,7 @@ AtHighs::AtHighs() {
 	loadQuotes(moneyEquiv_);
 
 	quotesStart_ += months{1};
-	if (Settings::get().atHighs.logStrategy)
-		print("Quotes period", quotesStart_, quotesEnd_);
+	printIf(Settings::get().atHighs.logStrategy, "Quotes period", quotesStart_, quotesEnd_);
 }
 
 Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
@@ -44,13 +43,11 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 		if (date < firstDate)
 			date = firstDate;
 
-		if (Settings::get().atHighs.logStrategy)
-			print("Analyze prices", ticker, date, onDate);
+		printIf(Settings::get().atHighs.logStrategy, "Analyze prices", ticker, date, onDate);
 
 		for (; date < onDate; date += months{1}) {
 			const auto price = Quotes::get().getQuote(ticker, date);
-			if (Settings::get().atHighs.logStrategy)
-				print(date, onDate, price, priceOnDate);
+			printIf(Settings::get().atHighs.logStrategy, date, onDate, price, priceOnDate);
 
 			if (price > priceOnDate) {
 				atHigh = false;
@@ -60,8 +57,7 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 		}
 		if (atHigh) {
 			const auto gain = 100 * (priceOnDate / Quotes::get().getQuote(ticker, onDate - months{1}) - 1);
-			if (Settings::get().atHighs.logStrategy)
-				print("At high, prev month gain", gain);
+			printIf(Settings::get().atHighs.logStrategy, "At high, prev month gain", gain);
 
 			atHighs.push_back(S{{}, ticker, gain});
 		}
@@ -69,8 +65,7 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 	std::sort(atHighs.begin(), atHighs.end(), [](auto a, auto b) {
 		return a.gain < b.gain;
 	});
-	if (Settings::get().atHighs.logStrategy)
-		print("At highs, sorted by prev month gain", atHighs);
+	printIf(Settings::get().atHighs.logStrategy, "At highs, sorted by prev month gain", atHighs);
 	Tickers res;
 	size_t num = 0;
 	for (const auto &it: atHighs) {
@@ -91,8 +86,7 @@ void AtHighs::run(Price cash, const Date &begin, const Date &end) {
 		cashAnalyzer.addBalance(cash);
 
 		const auto stocksAtHighs = findAtHighs(stocks_, date);
-		if (Settings::get().atHighs.logStrategy)
-			print("Stocks at highs on ", date, stocksAtHighs);
+		printIf(Settings::get().atHighs.logStrategy, "Stocks at highs on ", date, stocksAtHighs);
 
 		if (!stocksAtHighs.empty()) {
 			const auto sum = cash / stocksAtHighs.size();
@@ -100,8 +94,7 @@ void AtHighs::run(Price cash, const Date &begin, const Date &end) {
 				portfolioAnalyzer.buy(ticker, sum, date, cash);
 		} else {
 			const auto bondsAtHighs = findAtHighs(bonds_, date);
-			if (Settings::get().atHighs.logStrategy)
-				print("Stocks at highs on ", date, bondsAtHighs);
+			printIf(Settings::get().atHighs.logStrategy, "Stocks at highs on ", date, bondsAtHighs);
 
 			if (!bondsAtHighs.empty()) {
 				const auto sum = cash / bondsAtHighs.size();

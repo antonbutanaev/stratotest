@@ -17,16 +17,16 @@ void PortfolioAnalyzer::sellAll(Date date, Price &cash) {
 		stat.numTrades += 1;
 		stat.gaines.push_back(price / position.second.base - 1);
 		stat.profits.push_back(position.second.pos * (price - position.second.base));
-		if (Settings::get().positionAnalyzer.logSell)
-			print(
-				"Sell",
-				position.first,
-				date,
-				position.second.pos,
-				price,
-				100 * stat.gaines.back(),
-				stat.profits.back()
-			);
+		printIf(
+			Settings::get().positionAnalyzer.logSell,
+			"Sell",
+			position.first,
+			date,
+			position.second.pos,
+			price,
+			100 * stat.gaines.back(),
+			stat.profits.back()
+		);
 	}
 	portfolio_.clear();
 }
@@ -39,20 +39,19 @@ void PortfolioAnalyzer::buy(const Ticker &ticker, Price sum, Date date, Price &c
 	portfolio.pos += num;
 	cash -= num * price;
 	cash -= Settings::get().comission;
-	if (Settings::get().positionAnalyzer.logBuy)
-		print(
-			"Buy",
-			ticker,
-			date,
-			num,
-			price
-		);
+	printIf(
+		Settings::get().positionAnalyzer.logBuy,
+		"Buy",
+		ticker,
+		date,
+		num,
+		price
+	);
 }
 
 void PortfolioAnalyzer::result() {
 	if (!Settings::get().positionAnalyzer.analyze)
 		return;
-	print("PORTFOLIO STAT");
 	print("Ticker", "Num", "AvgGain", "MedGain", "Profit", "AvgProfit", "MedProfit");
 	for (auto &stat: stat_) {
 		auto &gaines = stat.second.gaines;

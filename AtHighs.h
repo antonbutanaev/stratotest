@@ -23,7 +23,7 @@ private:
 		"GDX",
 		"IAU",
 		"QQQ",
-		"MOAT",
+		//"MOAT",
 		//"MTUM",
 		//"NOBL",
 		//"QUAL",
