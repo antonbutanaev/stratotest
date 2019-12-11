@@ -81,21 +81,10 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 }
 
 void AtHighs::run(Price cash, const Date &begin, const Date &end) {
-	v1(cash, begin, end);
+	v3(cash, begin, end);
 }
 
 void AtHighs::v2(Price cash, const Date &begin, const Date &end) {
-	// Усовершенствованный алгоритм:
-	// есть стоки на хаях (с сортировкой и выборкой)?
-	// продаём все бонды и эквивалент кеша из портфеля
-	// продаём те стоки из портфеля, что не на хаях
-	// докупаем на доступный кеш, стоки, что на хаях
-	//
-	// нет стоков на хаях
-	// делаем то же с бондами
-
-	// нет бондов на хаях
-	// сидим в эквиваленте кеша
 	const auto origCash = cash;
 	CashAnalyzer cashAnalyzer;
 	PortfolioAnalyzer portfolioAnalyzer;
@@ -215,3 +204,68 @@ void AtHighs::v1(Price cash, const Date &begin, const Date &end) {
 	cashAnalyzer.result(begin, end, cash, origCash);
 	portfolioAnalyzer.result();
 }
+
+void AtHighs::v3(Price cash, const Date &begin, const Date &end) {
+	const auto origCash = cash;
+	CashAnalyzer cashAnalyzer;
+	PortfolioAnalyzer portfolioAnalyzer;
+
+	for (auto date = begin; date < end; date += months{1}) {
+		printIf(
+			Settings::get().atHighs.logStrategy,
+			"Date",
+			date
+		);
+
+		const auto portfolio = portfolioAnalyzer.portfolio();
+
+		portfolioAnalyzer.sellAll(date, cash);
+		cashAnalyzer.addBalance(cash);
+
+		const auto rebalance = [&](Tickers atHighs) {
+			if (atHighs.empty())
+				return false;
+
+			for (const auto &position: portfolio) {
+				const auto it = find(atHighs.begin(), atHighs.end(), position);
+				if (it != atHighs.end()) {
+					atHighs.erase(it);
+					atHighs.insert(atHighs.empty()? atHighs.end() : atHighs.begin(), position);
+				}
+			}
+
+			if (atHighs.size() > Settings::get().atHighs.numToBuy)
+				atHighs.resize(Settings::get().atHighs.numToBuy);
+
+			printIf(
+				Settings::get().atHighs.logStrategy,
+				"At highs on ",
+				date,
+				atHighs
+			);
+
+			const auto sum = cash / atHighs.size();
+			for (const auto &ticker: atHighs)
+				portfolioAnalyzer.buy(ticker, sum, date, cash);
+			return true;
+		};
+
+		if (
+			!rebalance(findAtHighs(stocks_, date)) &&
+			!rebalance(findAtHighs(bonds_, date))
+		)
+			portfolioAnalyzer.buy(moneyEquiv_[0], cash, date, cash);
+	}
+
+	printIf(
+		Settings::get().atHighs.logStrategy,
+		"End",
+		end
+	);
+
+	portfolioAnalyzer.sellAll(end, cash);
+	cashAnalyzer.addBalance(cash);
+	cashAnalyzer.result(begin, end, cash, origCash);
+	portfolioAnalyzer.result();
+}
+

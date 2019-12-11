@@ -67,6 +67,7 @@ private:
 	Tickers findAtHighs(const Tickers &tickers, const Date &onDate);
 	void v1(Price cash, const Date &begin, const Date &end);
 	void v2(Price cash, const Date &begin, const Date &end);
+	void v3(Price cash, const Date &begin, const Date &end);
 };
 
 #endif
