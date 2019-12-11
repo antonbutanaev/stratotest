@@ -57,11 +57,14 @@ void CashAnalyzer::result(Date startDate, Date endDate, Price cash, Price origCa
 	const auto rate = cash / origCash;
 	const auto numMonths = (endDate.year()/endDate.month() - startDate.year()/startDate.month()).count();
 	const auto annual = pow(rate, 12./numMonths);
+	size_t pos0 = 0;
+	while (pos0 < gaines_.size() && gaines_[pos0] < .0)
+		++pos0;
 
 	static bool titlePrinted = false;
 	printIf(
 		!titlePrinted,
-		"Start", "End", "Years", "EndCash", "Rate", "Annual", "MaxInLoss", "MaxContLoss", "MaxDD", "AvgGain", "MedGain"
+		"Start", "End", "Years", "Rate", "Annual", "MaxInLoss", "MaxContLoss", "MaxDD", "AvgGain", "MedGain", "Gain0+"
 	);
 	titlePrinted = true;
 
@@ -69,13 +72,13 @@ void CashAnalyzer::result(Date startDate, Date endDate, Price cash, Price origCa
 		startDate,
 		endDate,
 		numMonths/12.,
-		cash,
 		rate,
-		100 * (annual - 1),
+		100. * (annual - 1),
 		maxNumInLoss_,
 		maxNumContLosses_,
 		maxDrawDown_,
-		100 * avgGain,
-		100 * gaines_[gaines_.size() / 2]
+		100. * avgGain,
+		100. * gaines_[gaines_.size() / 2],
+  		100. * (gaines_.size() - pos0) / gaines_.size()
 	);
 }

@@ -14,6 +14,11 @@ AtHighs::AtHighs() {
 			Quotes::loadQuotes(ticker, quotesStart_, quotesEnd_);
 	};
 
+	sort(stocks_.begin(), stocks_.end());
+	sort(bonds_.begin(), bonds_.end());
+	if (moneyEquiv_.size() != 1)
+		THROW("Only 1 money equivalent supported");
+
 	loadQuotes(stocks_);
 	loadQuotes(bonds_);
 	loadQuotes(moneyEquiv_);
@@ -67,16 +72,31 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 	});
 	printIf(Settings::get().atHighs.logStrategy, "At highs, sorted by prev month gain", atHighs);
 	Tickers res;
-	size_t num = 0;
-	for (const auto &it: atHighs) {
-		if (++num > Settings::get().atHighs.numToBuy)
-			break;
+	res.reserve(atHighs.size());
+	for (const auto &it: atHighs)
 		res.push_back(it.ticker);
-	}
 	return res;
 }
 
 void AtHighs::run(Price cash, const Date &begin, const Date &end) {
+	v1(cash, begin, end);
+}
+
+void AtHighs::v2(Price cash, const Date &begin, const Date &end) {
+	// Усовершенствованный алгоритм:
+	// есть стоки на хаях (с сортировкой и выборкой)?
+	// продаём все бонды и эквивалент кеша из портфеля
+	// продаём те стоки из портфеля, что не на хаях
+	// докупаем на доступный кеш, стоки, что на хаях
+	//
+	// нет стоков на хаях
+	// делаем то же с бондами
+
+	// нет бондов на хаях
+	// сидим в эквиваленте кеша
+}
+
+void AtHighs::v1(Price cash, const Date &begin, const Date &end) {
 	const auto origCash = cash;
 	CashAnalyzer cashAnalyzer;
 	PortfolioAnalyzer portfolioAnalyzer;
@@ -85,7 +105,10 @@ void AtHighs::run(Price cash, const Date &begin, const Date &end) {
 		portfolioAnalyzer.sellAll(date, cash);
 		cashAnalyzer.addBalance(cash);
 
-		const auto stocksAtHighs = findAtHighs(stocks_, date);
+		auto stocksAtHighs = findAtHighs(stocks_, date);
+		if (stocksAtHighs.size() > Settings::get().atHighs.numToBuy)
+			stocksAtHighs.resize(Settings::get().atHighs.numToBuy);
+
 		printIf(Settings::get().atHighs.logStrategy, "Stocks at highs on ", date, stocksAtHighs);
 
 		if (!stocksAtHighs.empty()) {
@@ -93,7 +116,10 @@ void AtHighs::run(Price cash, const Date &begin, const Date &end) {
 			for (const auto &ticker: stocksAtHighs)
 				portfolioAnalyzer.buy(ticker, sum, date, cash);
 		} else {
-			const auto bondsAtHighs = findAtHighs(bonds_, date);
+			auto bondsAtHighs = findAtHighs(bonds_, date);
+			if (bondsAtHighs.size() > Settings::get().atHighs.numToBuy)
+				bondsAtHighs.resize(Settings::get().atHighs.numToBuy);
+
 			printIf(Settings::get().atHighs.logStrategy, "Stocks at highs on ", date, bondsAtHighs);
 
 			if (!bondsAtHighs.empty()) {

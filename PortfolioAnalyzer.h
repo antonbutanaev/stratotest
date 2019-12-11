@@ -10,6 +10,9 @@ public:
 	void sell(const Ticker &ticker, Date date, Price &cash);
 	void buy(const Ticker &ticker, Price sum, Date date, Price &cash);
 	Price value(Date date) const;
+
+	std::vector<Ticker> portfolio() const;
+
 	void result();
 
 private:

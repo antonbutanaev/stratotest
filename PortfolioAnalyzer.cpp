@@ -40,6 +40,14 @@ Price PortfolioAnalyzer::value(Date date) const {
 	return res;
 }
 
+std::vector<Ticker> PortfolioAnalyzer::portfolio() const {
+	std::vector<Ticker> result;
+	for (auto &position: portfolio_)
+		if (position.second.pos > 0)
+			result.push_back(position.first);
+	return result;
+}
+
 void PortfolioAnalyzer::sellAll(Date date, Price &cash) {
 	for (auto &position: portfolio_)
 		sell(position.first, date, cash);
