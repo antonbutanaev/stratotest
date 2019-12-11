@@ -81,7 +81,7 @@ Tickers AtHighs::findAtHighs(const Tickers &tickers, const Date &onDate) {
 }
 
 void AtHighs::run(Price cash, const Date &begin, const Date &end) {
-	v2(cash, begin, end);
+	v1(cash, begin, end);
 }
 
 void AtHighs::v2(Price cash, const Date &begin, const Date &end) {
@@ -183,31 +183,31 @@ void AtHighs::v1(Price cash, const Date &begin, const Date &end) {
 		portfolioAnalyzer.sellAll(date, cash);
 		cashAnalyzer.addBalance(cash);
 
-		auto stocksAtHighs = findAtHighs(stocks_, date);
-		if (stocksAtHighs.size() > Settings::get().atHighs.numToBuy)
-			stocksAtHighs.resize(Settings::get().atHighs.numToBuy);
+		const auto rebalance = [&](Tickers atHighs) {
+			if (atHighs.empty())
+				return false;
 
-		printIf(Settings::get().atHighs.logStrategy, "Stocks at highs on ", date, stocksAtHighs);
+			if (atHighs.size() > Settings::get().atHighs.numToBuy)
+				atHighs.resize(Settings::get().atHighs.numToBuy);
 
-		if (!stocksAtHighs.empty()) {
-			const auto sum = cash / stocksAtHighs.size();
-			for (const auto &ticker: stocksAtHighs)
+			printIf(
+				Settings::get().atHighs.logStrategy,
+				"At highs on ",
+				date,
+				atHighs
+			);
+
+			const auto sum = cash / atHighs.size();
+			for (const auto &ticker: atHighs)
 				portfolioAnalyzer.buy(ticker, sum, date, cash);
-		} else {
-			auto bondsAtHighs = findAtHighs(bonds_, date);
-			if (bondsAtHighs.size() > Settings::get().atHighs.numToBuy)
-				bondsAtHighs.resize(Settings::get().atHighs.numToBuy);
+			return true;
+		};
 
-			printIf(Settings::get().atHighs.logStrategy, "Stocks at highs on ", date, bondsAtHighs);
-
-			if (!bondsAtHighs.empty()) {
-				const auto sum = cash / bondsAtHighs.size();
-				for (const auto &ticker: bondsAtHighs)
-					portfolioAnalyzer.buy(ticker, sum, date, cash);
-			} else
-				portfolioAnalyzer.buy(moneyEquiv_[0], cash, date, cash);
-		}
-
+		if (
+			!rebalance(findAtHighs(stocks_, date)) &&
+			!rebalance(findAtHighs(bonds_, date))
+		)
+			portfolioAnalyzer.buy(moneyEquiv_[0], cash, date, cash);
 	}
 
 	portfolioAnalyzer.sellAll(end, cash);
@@ -215,4 +215,3 @@ void AtHighs::v1(Price cash, const Date &begin, const Date &end) {
 	cashAnalyzer.result(begin, end, cash, origCash);
 	portfolioAnalyzer.result();
 }
-
