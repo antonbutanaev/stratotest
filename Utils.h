@@ -12,19 +12,19 @@ double sharpe(const T &gaines, const double risklessGain = 0.) {
 
 	const auto avg = std::accumulate(
 		std::begin(gaines), std::end(gaines), 0., [&] (auto cum, auto gain) {
-			return cum + 100 * gain;
+			return cum + gain;
 		}
 	) / n;
 
 	const auto dev = sqrt(
 		std::accumulate(
 			std::begin(gaines), std::end(gaines), 0., [&](auto cum, auto gain){
-				const auto delta = 100 * (gain - risklessGain);
+				const auto delta = gain - risklessGain;
 				return cum + delta * delta;
 		}) / n
 	);
 
-	return (avg - 100 * risklessGain) / dev;
+	return (avg - risklessGain) / dev;
 }
 
 #endif
