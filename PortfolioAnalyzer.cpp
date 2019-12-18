@@ -1,7 +1,9 @@
 #include <numeric>
+#include <cmath>
 #include "Log.h"
 #include "Settings.h"
 #include "PortfolioAnalyzer.h"
+#include "Utils.h"
 
 using namespace std;
 
@@ -92,7 +94,7 @@ void PortfolioAnalyzer::buy(const Ticker &ticker, Price sum, Date date, Price &c
 void PortfolioAnalyzer::result() {
 	if (!Settings::get().positionAnalyzer.analyze)
 		return;
-	print("Ticker", "Num", "AvgGain", "MedGain", "Profit", "AvgProfit", "MedProfit");
+	print("Ticker", "Num", "AvgGain", "MedGain", "Profit", "AvgProfit", "MedProfit", "Sharpe");
 	for (auto &stat: stat_) {
 		auto &gaines = stat.second.gaines;
 		auto &profits = stat.second.profits;
@@ -108,7 +110,8 @@ void PortfolioAnalyzer::result() {
 				100 * gaines[gaines.size() / 2],
 				profit,
 				profit / profits.size(),
-				profits[profits.size() / 2]
+				profits[profits.size() / 2],
+				sharpe(gaines)
 			);
 		}
 	}

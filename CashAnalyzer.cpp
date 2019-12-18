@@ -3,6 +3,7 @@
 #include "CashAnalyzer.h"
 #include "Log.h"
 #include "Settings.h"
+#include "Utils.h"
 
 using namespace std;
 
@@ -70,7 +71,7 @@ void CashAnalyzer::result(Date startDate, Date endDate, Price cash, Price origCa
 	static bool titlePrinted = false;
 	printIf(
 		!titlePrinted,
-		"Start", "End", "Years", "Rate", "Annual", "MaxInLoss", "MaxContLoss", "MaxDD", "AvgGain", "MedGain", "Gain0+"
+		"Start", "End", "Years", "Rate", "Annual", "MaxInLoss", "MaxContLoss", "MaxDD", "AvgGain", "MedGain", "Gain0+", "Sharpe"
 	);
 	titlePrinted = true;
 
@@ -85,6 +86,7 @@ void CashAnalyzer::result(Date startDate, Date endDate, Price cash, Price origCa
 		maxDrawDown_,
 		100. * avgGain,
 		100. * gaines_[gaines_.size() / 2],
-  		100. * (gaines_.size() - pos0) / gaines_.size()
+  		100. * (gaines_.size() - pos0) / gaines_.size(),
+  		sharpe(gaines_)
 	);
 }
